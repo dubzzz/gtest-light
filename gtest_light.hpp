@@ -5,6 +5,12 @@
 
 template <unsigned idx> bool (*g_launchers)() = nullptr;
 namespace testing {
+class Test
+{
+protected:
+  virtual void SetUp() {}
+  virtual void TearDown() {}
+};
 template <class Runner> bool launch_runner()
 {
   std::cout << std::left << "[ " << std::setw(30) << Runner::name() << " ]" << std::endl;
@@ -31,26 +37,29 @@ template <std::size_t... I> int RunTests(std::index_sequence<I...>)
 }
 }
 
-#define TEST(PROJECT_NAME, TEST_NAME)                                          \
-  class Runner__ ## PROJECT_NAME ## __ ## TEST_NAME                            \
+#define TEST_IMPLEM(PROJECT_NAME, TEST_NAME, FIXTURE_NAME)                     \
+  class Runner__ ## PROJECT_NAME ## __ ## TEST_NAME : public FIXTURE_NAME      \
   {                                                                            \
     bool _has_failed;                                                          \
     void test();                                                               \
   public:                                                                      \
     static std::string name() { return "" #PROJECT_NAME "__" #TEST_NAME ""; }  \
     Runner__ ## PROJECT_NAME ## __ ## TEST_NAME() : _has_failed() {}           \
-    bool run() { test(); return _has_failed; }                                 \
+    bool run() { SetUp(); test(); TearDown(); return _has_failed; }            \
   };                                                                           \
   constexpr unsigned g_runner_id__ ## PROJECT_NAME ## __ ## TEST_NAME = __COUNTER__; \
   template <> bool (*g_launchers<g_runner_id__ ## PROJECT_NAME ## __ ## TEST_NAME>)() \
       = ::testing::launch_runner<Runner__ ## PROJECT_NAME ## __ ## TEST_NAME>; \
   void Runner__ ## PROJECT_NAME ## __ ## TEST_NAME::test()
 
+#define TEST(PROJECT_NAME, TEST_NAME) TEST_IMPLEM(PROJECT_NAME, TEST_NAME, ::testing::Test)
+#define TEST_F(FIXTURE_NAME, TEST_NAME) TEST_IMPLEM(FIXTURE_NAME, TEST_NAME, FIXTURE_NAME)
+
 #define EXPECT_IMPLEM(failure, condition, expected, actual) { if (! (condition)) { \
   this->_has_failed = true;                                                    \
-  std::cout << std::boolalpha << "\t" << failure << " @ " << __FILE__ << ":" << __LINE__         \
+  std::cout << std::boolalpha << "\t" << failure << " @ " << __FILE__ << ":" << __LINE__ \
       << "\n\t\tactual: " << actual                                            \
-      << "\n\t\texpected: " << expected << std::noboolalpha << std::endl;                          \
+      << "\n\t\texpected: " << expected << std::noboolalpha << std::endl;      \
 } }
 #define ASSERT_IMPLEM(failure, condition, expected, actual) { if (! (condition)) { \
   EXPECT_IMPLEM(failure, condition, expected, actual);                         \
