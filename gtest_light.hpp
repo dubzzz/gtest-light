@@ -8,6 +8,10 @@ template <unsigned idx> bool (*g_launchers())()
     return nullptr;
 }
 namespace testing {
+template <std::size_t... I > struct index_sequence {};
+template <std::size_t I, std::size_t... Is> struct gen { decltype(gen<I-1, I, Is...>()()) operator() () { return gen<I-1, I, Is...>()(); } };
+template <std::size_t... Is> struct gen<0, Is...> { index_sequence<0, Is...> operator() () { index_sequence<0, Is...>(); } };
+template <std::size_t I> decltype(gen<I>()()) make_index_sequence() { return gen<I>()(); };
 class Test
 {
 protected:
@@ -32,7 +36,7 @@ template <unsigned idx> bool RunOneTest()
   }
   return g_launchers<idx>()();
 }
-template <std::size_t... I> int RunTests(std::index_sequence<I...>)
+template <std::size_t... I> int RunTests(::testing::index_sequence<I...>)
 {
   bool status[] = { RunOneTest<I>()... };
   bool agg_status = std::find(std::begin(status), std::end(status), true) != std::end(status);
@@ -79,4 +83,4 @@ template <std::size_t... I> int RunTests(std::index_sequence<I...>)
 #define ASSERT_TRUE(val) ASSERT_IMPLEM("ASSERT_TRUE", (!!(val)), true, (!!(val)))
 #define ASSERT_FALSE(val) ASSERT_IMPLEM("ASSERT_FALSE", (!(val)), false, (!(val)))
 
-#define RUN_ALL_TESTS ([]() { return ::testing::RunTests(std::make_index_sequence<::testing::g_max_num_tests>()); })
+#define RUN_ALL_TESTS ([]() { return ::testing::RunTests(::testing::make_index_sequence<::testing::g_max_num_tests>()); })
