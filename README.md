@@ -18,6 +18,8 @@ Resulting file might look like:
 
 /* Content of gtest_light.hpp */
 
+/* Your GTest unit-tests */
+
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
