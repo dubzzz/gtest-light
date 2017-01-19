@@ -3,7 +3,10 @@
 #include <iostream>
 #include <string>
 
-template <unsigned idx> bool (*g_launchers)() = nullptr;
+template <unsigned idx> bool (*g_launchers())()
+{
+    return nullptr;
+}
 namespace testing {
 class Test
 {
@@ -23,11 +26,11 @@ constexpr unsigned g_max_num_tests = 200;
 void InitGoogleTest(int*, char**) {}
 template <unsigned idx> bool RunOneTest()
 {
-  if (! g_launchers<idx>)
+  if (! g_launchers<idx>())
   {
     return 0;
   }
-  return g_launchers<idx>();
+  return g_launchers<idx>()();
 }
 template <std::size_t... I> int RunTests(std::index_sequence<I...>)
 {
@@ -48,8 +51,10 @@ template <std::size_t... I> int RunTests(std::index_sequence<I...>)
     bool run() { SetUp(); test(); TearDown(); return _has_failed; }            \
   };                                                                           \
   constexpr unsigned g_runner_id__ ## PROJECT_NAME ## __ ## TEST_NAME = __COUNTER__; \
-  template <> bool (*g_launchers<g_runner_id__ ## PROJECT_NAME ## __ ## TEST_NAME>)() \
-      = ::testing::launch_runner<Runner__ ## PROJECT_NAME ## __ ## TEST_NAME>; \
+  template <> bool (*g_launchers<g_runner_id__ ## PROJECT_NAME ## __ ## TEST_NAME>())() \
+  {                                                                            \
+      return ::testing::launch_runner<Runner__ ## PROJECT_NAME ## __ ## TEST_NAME>; \
+  }                                                                            \
   void Runner__ ## PROJECT_NAME ## __ ## TEST_NAME::test()
 
 #define TEST(PROJECT_NAME, TEST_NAME) TEST_IMPLEM(PROJECT_NAME, TEST_NAME, ::testing::Test)
