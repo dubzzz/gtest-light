@@ -6,7 +6,7 @@ Light version of GTest framework compatible with Online compilers like ideone, g
 
 ## Requirements 
 
-Compiler with C++14 enabled.
+Compiler with C++11 enabled.
 
 ## How to use it?
 
