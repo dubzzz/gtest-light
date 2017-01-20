@@ -1,11 +1,14 @@
 #include <algorithm>
 #include <iomanip>
-#include <iostream>
+#ifndef TEST_LOGGER
+#  include <iostream>
+#  define TEST_LOGGER() ::std::cerr
+#endif
 #include <string>
 
 template <unsigned idx> bool (*g_launchers())()
 {
-    return nullptr;
+  return nullptr;
 }
 namespace testing {
 template <std::size_t... I > struct index_sequence {};
@@ -20,10 +23,10 @@ protected:
 };
 template <class Runner> bool launch_runner()
 {
-  std::cout << std::left << "[ " << std::setw(30) << Runner::name() << " ]" << std::endl;
+  TEST_LOGGER() << std::left << "[ " << std::setw(30) << Runner::name() << " ]" << std::endl;
   bool out { Runner().run() };
   const char* status = out ? "FAILED" : "OK";
-  std::cout << std::right << "[   " << std::setw(30) << status << " ]" << std::endl;
+  TEST_LOGGER() << std::right << "[   " << std::setw(30) << status << " ]" << std::endl;
   return out;
 }
 constexpr unsigned g_max_num_tests = 200;
