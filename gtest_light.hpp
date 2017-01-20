@@ -5,6 +5,10 @@
 #endif
 template <unsigned idx> bool (*g_launchers())() { return nullptr; }
 namespace testing {
+template <class T1, class T2> void log_error(const char* failure_name, const char* filename, unsigned line, const char* comparison, T1&& v1, T2&& v2) {
+  TEST_LOGGER() << ::std::boolalpha << "\t" << failure_name << " @ " << filename << ":" << line
+      << "\n\t\texpected: " << v1 << comparison << v2 << ::std::noboolalpha << ::std::endl;
+}
 template <unsigned... I > struct index_sequence {};
 template <unsigned I, unsigned... Is> struct gen { decltype(gen<I-1, I, Is...>()()) operator() () { return gen<I-1, I, Is...>()(); } };
 template <unsigned... Is> struct gen<0, Is...> { index_sequence<0, Is...> operator() () { index_sequence<0, Is...>(); } };
@@ -20,7 +24,7 @@ template <class Runner> bool launch_runner()
   TEST_LOGGER() << ::std::left << "[ " << ::std::setw(30) << Runner::name << " ]" << ::std::endl;
   bool out { Runner().run() };
   const char* status = out ? "FAILED" : "OK";
-  TEST_LOGGER() << ::std::right << "[   " << ::std::setw(30) << status << " ]" << ::std::endl;
+  TEST_LOGGER() << ::std::right << "[ " << ::std::setw(30) << status << " ]" << ::std::endl;
   return out;
 }
 constexpr unsigned g_max_num_tests = 200;
@@ -55,23 +59,21 @@ template <unsigned... I> int RunTests(::testing::index_sequence<I...>)
 #define TEST(PROJECT_NAME, TEST_NAME) TEST_IMPLEM(PROJECT_NAME, TEST_NAME, ::testing::Test)
 #define TEST_F(FIXTURE_NAME, TEST_NAME) TEST_IMPLEM(FIXTURE_NAME, TEST_NAME, FIXTURE_NAME)
 
-#define EXPECT_IMPLEM(failure, condition, expected, actual) { if (! (condition)) { \
+#define EXPECT_IMPLEM(failure, condition, comparison, expected, actual) { if (! (condition)) { \
   this->_has_failed = true;                                                    \
-  TEST_LOGGER() << ::std::boolalpha << "\t" << failure << " @ " << __FILE__ << ":" << __LINE__ \
-      << "\n\t\tactual: " << actual                                            \
-      << "\n\t\texpected: " << expected << ::std::noboolalpha << ::std::endl;  \
+  ::testing::log_error(failure, __FILE__, __LINE__, comparison, actual, expected); \
 } }
-#define ASSERT_IMPLEM(failure, condition, expected, actual) { if (! (condition)) { \
-  EXPECT_IMPLEM(failure, condition, expected, actual);                         \
+#define ASSERT_IMPLEM(failure, condition, comparison, expected, actual) { if (! (condition)) { \
+  EXPECT_IMPLEM(failure, condition, comparison, expected, actual);                         \
   return;                                                                      \
 } }
-#define EXPECT_EQ(expected, val) EXPECT_IMPLEM("EXPECT_EQ", ((expected) == (val)), expected, val)
-#define EXPECT_NE(expected, val) EXPECT_IMPLEM("EXPECT_NE", ((expected) != (val)), expected, val)
-#define EXPECT_TRUE(val) EXPECT_IMPLEM("EXPECT_TRUE", (!!(val)), true, (!!(val)))
-#define EXPECT_FALSE(val) EXPECT_IMPLEM("EXPECT_FALSE", (!(val)), false, (!(val)))
-#define ASSERT_EQ(expected, val) ASSERT_IMPLEM("ASSERT_EQ", ((expected) == (val)), expected, val)
-#define ASSERT_NE(expected, val) ASSERT_IMPLEM("ASSERT_NE", ((expected) != (val)), expected, val)
-#define ASSERT_TRUE(val) ASSERT_IMPLEM("ASSERT_TRUE", (!!(val)), true, (!!(val)))
-#define ASSERT_FALSE(val) ASSERT_IMPLEM("ASSERT_FALSE", (!(val)), false, (!(val)))
+#define EXPECT_EQ(expected, val) EXPECT_IMPLEM("EXPECT_EQ", ((expected) == (val)), " == ", expected, val)
+#define EXPECT_NE(expected, val) EXPECT_IMPLEM("EXPECT_NE", ((expected) != (val)), " != ", expected, val)
+#define EXPECT_TRUE(val) EXPECT_IMPLEM("EXPECT_TRUE", (!!(val)), " == ", true, (!!(val)))
+#define EXPECT_FALSE(val) EXPECT_IMPLEM("EXPECT_FALSE", (!(val)), " == ", false, (!(val)))
+#define ASSERT_EQ(expected, val) ASSERT_IMPLEM("ASSERT_EQ", ((expected) == (val)), " == ", expected, val)
+#define ASSERT_NE(expected, val) ASSERT_IMPLEM("ASSERT_NE", ((expected) != (val)), " != ", expected, val)
+#define ASSERT_TRUE(val) ASSERT_IMPLEM("ASSERT_TRUE", (!!(val)), " == ", true, (!!(val)))
+#define ASSERT_FALSE(val) ASSERT_IMPLEM("ASSERT_FALSE", (!(val)), " == ", false, (!(val)))
 
 #define RUN_ALL_TESTS ([]() { return ::testing::RunTests(::testing::make_index_sequence<::testing::g_max_num_tests>()); })
