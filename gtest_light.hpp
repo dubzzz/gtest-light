@@ -1,20 +1,14 @@
-#include <algorithm>
 #include <iomanip>
 #ifndef TEST_LOGGER
 #  include <iostream>
 #  define TEST_LOGGER() ::std::cerr
 #endif
-#include <string>
-
-template <unsigned idx> bool (*g_launchers())()
-{
-  return nullptr;
-}
+template <unsigned idx> bool (*g_launchers())() { return nullptr; }
 namespace testing {
-template <std::size_t... I > struct index_sequence {};
-template <std::size_t I, std::size_t... Is> struct gen { decltype(gen<I-1, I, Is...>()()) operator() () { return gen<I-1, I, Is...>()(); } };
-template <std::size_t... Is> struct gen<0, Is...> { index_sequence<0, Is...> operator() () { index_sequence<0, Is...>(); } };
-template <std::size_t I> decltype(gen<I>()()) make_index_sequence() { return gen<I>()(); };
+template <unsigned... I > struct index_sequence {};
+template <unsigned I, unsigned... Is> struct gen { decltype(gen<I-1, I, Is...>()()) operator() () { return gen<I-1, I, Is...>()(); } };
+template <unsigned... Is> struct gen<0, Is...> { index_sequence<0, Is...> operator() () { index_sequence<0, Is...>(); } };
+template <unsigned I> decltype(gen<I>()()) make_index_sequence() { return gen<I>()(); };
 class Test
 {
 protected:
@@ -23,27 +17,19 @@ protected:
 };
 template <class Runner> bool launch_runner()
 {
-  TEST_LOGGER() << std::left << "[ " << std::setw(30) << Runner::name() << " ]" << std::endl;
+  TEST_LOGGER() << ::std::left << "[ " << ::std::setw(30) << Runner::name << " ]" << ::std::endl;
   bool out { Runner().run() };
   const char* status = out ? "FAILED" : "OK";
-  TEST_LOGGER() << std::right << "[   " << std::setw(30) << status << " ]" << std::endl;
+  TEST_LOGGER() << ::std::right << "[   " << ::std::setw(30) << status << " ]" << ::std::endl;
   return out;
 }
 constexpr unsigned g_max_num_tests = 200;
 void InitGoogleTest(int*, char**) {}
-template <unsigned idx> bool RunOneTest()
+template <unsigned idx> bool RunOneTest() { return !!g_launchers<idx>() ? g_launchers<idx>()() : 0; }
+template <unsigned... I> int RunTests(::testing::index_sequence<I...>)
 {
-  if (! g_launchers<idx>())
-  {
-    return 0;
-  }
-  return g_launchers<idx>()();
-}
-template <std::size_t... I> int RunTests(::testing::index_sequence<I...>)
-{
-  bool status[] = { RunOneTest<I>()... };
-  bool agg_status = std::find(std::begin(status), std::end(status), true) != std::end(status);
-  return agg_status ? 1 : 0;
+  for (auto s : { RunOneTest<I>()... }) { if (s) return 1; }
+  return 0;
 }
 }
 
@@ -53,14 +39,16 @@ template <std::size_t... I> int RunTests(::testing::index_sequence<I...>)
     bool _has_failed;                                                          \
     void test();                                                               \
   public:                                                                      \
-    static std::string name() { return "" #PROJECT_NAME "__" #TEST_NAME ""; }  \
+    static const char name[];                                                  \
     Runner__ ## PROJECT_NAME ## __ ## TEST_NAME() : _has_failed() {}           \
     bool run() { SetUp(); test(); TearDown(); return _has_failed; }            \
   };                                                                           \
+  const char Runner__ ## PROJECT_NAME ## __ ## TEST_NAME ::name[]              \
+      = "" #PROJECT_NAME "__" #TEST_NAME "";                                   \
   constexpr unsigned g_runner_id__ ## PROJECT_NAME ## __ ## TEST_NAME = __COUNTER__; \
   template <> bool (*g_launchers<g_runner_id__ ## PROJECT_NAME ## __ ## TEST_NAME>())() \
   {                                                                            \
-      return ::testing::launch_runner<Runner__ ## PROJECT_NAME ## __ ## TEST_NAME>; \
+    return ::testing::launch_runner<Runner__ ## PROJECT_NAME ## __ ## TEST_NAME>; \
   }                                                                            \
   void Runner__ ## PROJECT_NAME ## __ ## TEST_NAME::test()
 
@@ -69,9 +57,9 @@ template <std::size_t... I> int RunTests(::testing::index_sequence<I...>)
 
 #define EXPECT_IMPLEM(failure, condition, expected, actual) { if (! (condition)) { \
   this->_has_failed = true;                                                    \
-  std::cout << std::boolalpha << "\t" << failure << " @ " << __FILE__ << ":" << __LINE__ \
+  TEST_LOGGER() << ::std::boolalpha << "\t" << failure << " @ " << __FILE__ << ":" << __LINE__ \
       << "\n\t\tactual: " << actual                                            \
-      << "\n\t\texpected: " << expected << std::noboolalpha << std::endl;      \
+      << "\n\t\texpected: " << expected << ::std::noboolalpha << ::std::endl;  \
 } }
 #define ASSERT_IMPLEM(failure, condition, expected, actual) { if (! (condition)) { \
   EXPECT_IMPLEM(failure, condition, expected, actual);                         \
