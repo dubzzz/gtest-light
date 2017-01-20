@@ -1,13 +1,32 @@
 #include <iomanip>
+#include <iterator>
+#include <type_traits>
+#include <typeinfo>
 #ifndef TEST_LOGGER
 #  include <iostream>
 #  define TEST_LOGGER() ::std::cerr
 #endif
 template <unsigned idx> bool (*g_launchers())() { return nullptr; }
 namespace testing {
+using ostream = decltype(TEST_LOGGER());
+template <class... Ts> using void_t = void;
+template <class T, class = void> struct PrintAll {
+  using InternalT = typename ::std::decay<T>::type const&;
+  InternalT _t;
+  PrintAll(InternalT t) : _t(t) {}
+  ::testing::ostream& print(::testing::ostream& os) const { return (os << "<instance of " << typeid(_t).name() << ">"); }
+};
+template <class T> struct PrintAll<T, void_t<typename ::std::decay<decltype(TEST_LOGGER() << ::std::declval<T>())>::type*>>{
+  using InternalT = typename ::std::decay<T>::type const&;
+  InternalT _t;
+  PrintAll(InternalT t) : _t(t) {}
+  ::testing::ostream& print(::testing::ostream& os) const { return (os << _t); }
+};
+template <class Type> ::testing::ostream& operator<<(::testing::ostream& os, PrintAll<Type, void> const& t) { return t.print(os); }
 template <class T1, class T2> void log_error(const char* failure_name, const char* filename, unsigned line, const char* comparison, T1&& v1, T2&& v2) {
-  TEST_LOGGER() << ::std::boolalpha << "\t" << failure_name << " @ " << filename << ":" << line
-      << "\n\t\texpected: " << v1 << comparison << v2 << ::std::noboolalpha << ::std::endl;
+  TEST_LOGGER() << ::std::boolalpha << "\t" << failure_name << " @ " << filename << ":" << line << "\n\t\texpected: "
+      << ::testing::PrintAll<T1>(v1) << comparison
+      << ::testing::PrintAll<T2>(v2) << ::std::noboolalpha << ::std::endl;
 }
 template <unsigned... I > struct index_sequence {};
 template <unsigned I, unsigned... Is> struct gen { decltype(gen<I-1, I, Is...>()()) operator() () { return gen<I-1, I, Is...>()(); } };
