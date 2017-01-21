@@ -27,3 +27,24 @@
 *.exe
 *.out
 *.app
+
+# CMake
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+Testing
+
+# Visual Studio
+*.vcxproj
+*.vcxproj.filters
+*.dir/
+*.VC.db
+*.VC.opendb
+*.sln
+.vs/
+Debug/
+Release/
