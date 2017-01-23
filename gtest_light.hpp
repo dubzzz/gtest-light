@@ -27,10 +27,6 @@ template <class T1, class T2> void log_error(const char* failure_name, const cha
       << ::testing::PrintAll<T1>(v1) << comparison
       << ::testing::PrintAll<T2>(v2) << ::std::noboolalpha << ::std::endl;
 }
-template <unsigned... I > struct index_sequence {};
-template <unsigned I, unsigned... Is> struct gen { decltype(gen<I-1, I, Is...>()()) operator() () { return gen<I-1, I, Is...>()(); } };
-template <unsigned... Is> struct gen<0, Is...> { index_sequence<0, Is...> operator() () { index_sequence<0, Is...>(); } };
-template <unsigned I> decltype(gen<I>()()) make_index_sequence() { return gen<I>()(); };
 class Test
 {
 protected:
@@ -47,12 +43,9 @@ template <class Runner> bool launch_runner()
 }
 constexpr unsigned g_max_num_tests = 200;
 void InitGoogleTest(int*, char**) {}
-template <unsigned idx> bool RunOneTest() { return !!g_launchers<idx>() ? g_launchers<idx>()() : 0; }
-template <unsigned... I> int RunTests(::testing::index_sequence<I...>)
-{
-  for (auto s : { RunOneTest<I>()... }) { if (s) return 1; }
-  return 0;
-}
+template <unsigned idx> bool RunOneTest() { return !!g_launchers<idx>() ? g_launchers<idx>()() : false; }
+template <unsigned idx = 0> int RunTests() { return (RunOneTest<idx>() ? 1 : 0) + RunTests<idx+1>(); }
+template <> int RunTests<::testing::g_max_num_tests>() { return 0; }
 }
 
 #define TEST_IMPLEM(PROJECT_NAME, TEST_NAME, FIXTURE_NAME)                     \
@@ -94,4 +87,4 @@ template <unsigned... I> int RunTests(::testing::index_sequence<I...>)
 #define ASSERT_TRUE(val) ASSERT_IMPLEM("ASSERT_TRUE", (!!(val)), " == ", true, (!!(val)))
 #define ASSERT_FALSE(val) ASSERT_IMPLEM("ASSERT_FALSE", (!(val)), " == ", false, (!(val)))
 
-#define RUN_ALL_TESTS ([]() { return ::testing::RunTests(::testing::make_index_sequence<::testing::g_max_num_tests>()); })
+#define RUN_ALL_TESTS ([]() { return ::testing::RunTests() != 0 ? 1 : 0; })
