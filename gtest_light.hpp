@@ -23,7 +23,7 @@ template <class T> struct PrintAll<T, void_t<typename ::std::decay<decltype(TEST
 };
 template <class Type> ::std::ostream& operator<<(::std::ostream& os, PrintAll<Type, void> const& t) { return t.print(os); }
 template <class T1, class T2> void log_error(const char* failure_name, const char* filename, unsigned line, const char* comparison, T1&& v1, T2&& v2) {
-  TEST_LOGGER() << ::std::boolalpha << "\t" << failure_name << " @ " << filename << ":" << line << "\n\t\texpected: "
+  TEST_LOGGER() << ::std::boolalpha << "  " << failure_name << "\n    " << filename << ":" << line << "\n    expected: "
       << ::testing::PrintAll<T1>(v1) << comparison
       << ::testing::PrintAll<T2>(v2) << ::std::noboolalpha << ::std::endl;
 }
