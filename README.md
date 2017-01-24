@@ -1,4 +1,4 @@
-# GTest -light
+# GTest -light [![Build Status](https://travis-ci.org/dubzzz/gtest-light.svg?branch=master)](https://travis-ci.org/dubzzz/gtest-light)
 
 _Unit-test your devs on Online compilers_
 
