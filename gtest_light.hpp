@@ -27,6 +27,29 @@ template <class T1, class T2> void log_error(const char* failure_name, const cha
       << ::testing::PrintAll<T1>(v1) << comparison
       << ::testing::PrintAll<T2>(v2) << ::std::noboolalpha << ::std::endl;
 }
+struct TestEq {
+  static const char sign[];
+  template <class T1,  class T2> bool operator()(T1&& t1, T2&& t2) const { return t1 == t2; } };
+struct TestNe {
+  static const char sign[];
+  template <class T1,  class T2> bool operator()(T1&& t1, T2&& t2) const { return t1 != t2; } };
+struct TestTrue {
+  static const char sign[];
+  template <class T1,  class T2> bool operator()(T1&& t1, T2&&) const { return !!t1; } };
+struct TestFalse {
+  static const char sign[];
+  template <class T1,  class T2> bool operator()(T1&& t1, T2&&) const { return !t1; } };
+const char TestEq::sign[] = " == ";
+const char TestNe::sign[] = " != ";
+const char TestTrue::sign[] = " == ";
+const char TestFalse::sign[] = " == ";
+template <class Comp, class T1, class T2> bool expect_impl(const char* failure, const char* file, unsigned line, T1&& t1, T2&& t2) {
+  if (! Comp()(t1, t2)) {
+    ::testing::log_error(failure, file, line, Comp::sign, t1, t2);
+    return true;
+  }
+  return false;
+}
 class Test
 {
 protected:
@@ -70,21 +93,18 @@ template <> int RunTests<::testing::g_max_num_tests>() { return 0; }
 #define TEST(PROJECT_NAME, TEST_NAME) TEST_IMPLEM(PROJECT_NAME, TEST_NAME, ::testing::Test)
 #define TEST_F(FIXTURE_NAME, TEST_NAME) TEST_IMPLEM(FIXTURE_NAME, TEST_NAME, FIXTURE_NAME)
 
-#define EXPECT_IMPLEM(failure, condition, comparison, expected, actual) { if (! (condition)) { \
+#define EXPECT_IMPLEM(failure, CompClass, expected, actual) { this->_has_failed |= ::testing::expect_impl<CompClass>(failure, __FILE__, __LINE__, (actual), (expected)); }
+#define ASSERT_IMPLEM(failure, CompClass, expected, actual) { if (::testing::expect_impl<CompClass>(failure, __FILE__, __LINE__, (actual), (expected))) { \
   this->_has_failed = true;                                                    \
-  ::testing::log_error(failure, __FILE__, __LINE__, comparison, actual, expected); \
-} }
-#define ASSERT_IMPLEM(failure, condition, comparison, expected, actual) { if (! (condition)) { \
-  EXPECT_IMPLEM(failure, condition, comparison, expected, actual);                         \
   return;                                                                      \
 } }
-#define EXPECT_EQ(expected, val) EXPECT_IMPLEM("EXPECT_EQ", ((expected) == (val)), " == ", (expected), (val))
-#define EXPECT_NE(expected, val) EXPECT_IMPLEM("EXPECT_NE", ((expected) != (val)), " != ", (expected), (val))
-#define EXPECT_TRUE(val) EXPECT_IMPLEM("EXPECT_TRUE", (!!(val)), " == ", true, (val))
-#define EXPECT_FALSE(val) EXPECT_IMPLEM("EXPECT_FALSE", (!(val)), " == ", false, (val))
-#define ASSERT_EQ(expected, val) ASSERT_IMPLEM("ASSERT_EQ", ((expected) == (val)), " == ", (expected), (val))
-#define ASSERT_NE(expected, val) ASSERT_IMPLEM("ASSERT_NE", ((expected) != (val)), " != ", (expected), (val))
-#define ASSERT_TRUE(val) ASSERT_IMPLEM("ASSERT_TRUE", (!!(val)), " == ", true, (val))
-#define ASSERT_FALSE(val) ASSERT_IMPLEM("ASSERT_FALSE", (!(val)), " == ", false, (val))
+#define EXPECT_EQ(expected, val) EXPECT_IMPLEM("EXPECT_EQ", ::testing::TestEq, expected, val)
+#define EXPECT_NE(expected, val) EXPECT_IMPLEM("EXPECT_NE", ::testing::TestNe, expected, val)
+#define EXPECT_TRUE(val) EXPECT_IMPLEM("EXPECT_TRUE", ::testing::TestTrue, true, val)
+#define EXPECT_FALSE(val) EXPECT_IMPLEM("EXPECT_FALSE", ::testing::TestFalse, false, val)
+#define ASSERT_EQ(expected, val) ASSERT_IMPLEM("ASSERT_EQ", ::testing::TestEq, expected, val)
+#define ASSERT_NE(expected, val) ASSERT_IMPLEM("ASSERT_NE", ::testing::TestNe, expected, val)
+#define ASSERT_TRUE(val) ASSERT_IMPLEM("ASSERT_TRUE", ::testing::TestTrue, true, val)
+#define ASSERT_FALSE(val) ASSERT_IMPLEM("ASSERT_FALSE", ::testing::TestFalse, false, val)
 
 #define RUN_ALL_TESTS ([]() { return ::testing::RunTests() != 0 ? 1 : 0; })
