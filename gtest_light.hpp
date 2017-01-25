@@ -78,13 +78,13 @@ template <> int RunTests<::testing::g_max_num_tests>() { return 0; }
   EXPECT_IMPLEM(failure, condition, comparison, expected, actual);                         \
   return;                                                                      \
 } }
-#define EXPECT_EQ(expected, val) EXPECT_IMPLEM("EXPECT_EQ", ((expected) == (val)), " == ", expected, val)
-#define EXPECT_NE(expected, val) EXPECT_IMPLEM("EXPECT_NE", ((expected) != (val)), " != ", expected, val)
-#define EXPECT_TRUE(val) EXPECT_IMPLEM("EXPECT_TRUE", (!!(val)), " == ", true, (!!(val)))
-#define EXPECT_FALSE(val) EXPECT_IMPLEM("EXPECT_FALSE", (!(val)), " == ", false, (!(val)))
-#define ASSERT_EQ(expected, val) ASSERT_IMPLEM("ASSERT_EQ", ((expected) == (val)), " == ", expected, val)
-#define ASSERT_NE(expected, val) ASSERT_IMPLEM("ASSERT_NE", ((expected) != (val)), " != ", expected, val)
-#define ASSERT_TRUE(val) ASSERT_IMPLEM("ASSERT_TRUE", (!!(val)), " == ", true, (!!(val)))
-#define ASSERT_FALSE(val) ASSERT_IMPLEM("ASSERT_FALSE", (!(val)), " == ", false, (!(val)))
+#define EXPECT_EQ(expected, val) EXPECT_IMPLEM("EXPECT_EQ", ((expected) == (val)), " == ", (expected), (val))
+#define EXPECT_NE(expected, val) EXPECT_IMPLEM("EXPECT_NE", ((expected) != (val)), " != ", (expected), (val))
+#define EXPECT_TRUE(val) EXPECT_IMPLEM("EXPECT_TRUE", (!!(val)), " == ", true, (val))
+#define EXPECT_FALSE(val) EXPECT_IMPLEM("EXPECT_FALSE", (!(val)), " == ", false, (val))
+#define ASSERT_EQ(expected, val) ASSERT_IMPLEM("ASSERT_EQ", ((expected) == (val)), " == ", (expected), (val))
+#define ASSERT_NE(expected, val) ASSERT_IMPLEM("ASSERT_NE", ((expected) != (val)), " != ", (expected), (val))
+#define ASSERT_TRUE(val) ASSERT_IMPLEM("ASSERT_TRUE", (!!(val)), " == ", true, (val))
+#define ASSERT_FALSE(val) ASSERT_IMPLEM("ASSERT_FALSE", (!(val)), " == ", false, (val))
 
 #define RUN_ALL_TESTS ([]() { return ::testing::RunTests() != 0 ? 1 : 0; })
