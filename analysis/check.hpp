@@ -6,7 +6,7 @@
 namespace analysis {
 
 enum class Level { Assert, Expect };
-enum class Operation { Eq };
+enum class Operation { Eq, Ne, True, False };
 
 class Test
 {

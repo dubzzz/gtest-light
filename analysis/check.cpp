@@ -35,6 +35,9 @@ std::string to_failure_name(Level level, Operation op)
   switch (op)
   {
     case Operation::Eq: name += "EQ"; break;
+    case Operation::Ne: name += "NE"; break;
+    case Operation::True: name += "TRUE"; break;
+    case Operation::False: name += "FALSE"; break;
   }
   return name;
 }
@@ -43,6 +46,9 @@ std::string to_op_repr(Operation op)
   switch (op)
   {
     case Operation::Eq: return " == ";
+    case Operation::Ne: return " != ";
+    case Operation::True: return " == ";
+    case Operation::False: return " == ";
   }
   return "";
 }
