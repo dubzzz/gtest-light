@@ -91,7 +91,7 @@ std::vector<std::string> build_patterns(std::vector<Test> const& details)
 }
 int compute_retcode(std::vector<Test> const& details)
 {
-  auto&& it_with_failures = std::find_if(details.begin(), details.end(), [](decltype(details[0]) const& test) { return ! test.failures().empty(); });
+  auto&& it_with_failures = std::find_if(details.begin(), details.end(), [](decltype(details[0])& test) { return ! test.failures().empty(); });
   return it_with_failures != details.end() ? 1 : 0;
 }
 
