@@ -8,6 +8,7 @@
 #endif
 template <unsigned idx> bool (*g_launchers())() { return nullptr; }
 namespace testing {
+template <class T> using print_output = typename ::std::decay<decltype(TEST_LOGGER() << ::std::declval<T>())>::type;
 template <class... Ts> using void_t = void;
 template <class T, class = void> struct PrintAll {
   using InternalT = typename ::std::decay<T>::type const&;
@@ -15,7 +16,7 @@ template <class T, class = void> struct PrintAll {
   PrintAll(InternalT t) : _t(t) {}
   ::std::ostream& print(::std::ostream& os) const { return (os << "<instance of " << typeid(_t).name() << ">"); }
 };
-template <class T> struct PrintAll<T, void_t<typename ::std::decay<decltype(TEST_LOGGER() << ::std::declval<T>())>::type*>>{
+template <class T> struct PrintAll<T, void_t<typename ::std::enable_if<! ::std::is_same<void, print_output<T>>::value>::type*>>{
   using InternalT = typename ::std::decay<T>::type const&;
   InternalT _t;
   PrintAll(InternalT t) : _t(t) {}
