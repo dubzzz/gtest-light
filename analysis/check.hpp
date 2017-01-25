@@ -12,7 +12,7 @@ class Test
 {
   const std::string _project_name;
   const std::string _name;
-  std::map<int, std::tuple<Level, Operation, std::string, std::string>> _failures;
+  std::map<int, std::tuple<::analysis::Level, ::analysis::Operation, std::string, std::string>> _failures;
 
 public:
   Test(std::string const& project_name, std::string const& name)
@@ -22,18 +22,15 @@ public:
   {}
   std::string const& project_name() const { return _project_name; }
   std::string const& name() const { return _name; }
-  std::map<int, std::tuple<Level, Operation, std::string, std::string>> const& failures() const { return _failures; }
-  Test& withFailure(int line, Level level, Operation op, std::string const& v1, std::string const v2)
+  std::map<int, std::tuple<::analysis::Level, ::analysis::Operation, std::string, std::string>> const& failures() const { return _failures; }
+  Test& withFailure(int line, ::analysis::Level level, ::analysis::Operation op, std::string const& v1, std::string const v2)
   {
     _failures.insert(std::make_pair(line, std::make_tuple(level, op, v1, v2)));
     return *this;
   }
 };
 
-int check(int /*retcode*/, std::string const& /*output*/, std::vector<Test> const& /*details*/)
-{
-  return 0;
-}
+int check(int /*retcode*/, std::string const& /*output*/, std::vector<::analysis::Test> const& /*details*/);
 
 } //analysis
 
