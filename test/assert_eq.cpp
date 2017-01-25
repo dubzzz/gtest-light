@@ -4,8 +4,7 @@ static std::ostringstream& get_stream()
   static std::ostringstream oss;
   return oss;
 }
-
-//#define TEST_LOGGER() get_stream()
+#define TEST_LOGGER() get_stream()
 #include "../gtest_light.hpp"
 #include "../analysis/check.hpp"
 
@@ -38,9 +37,9 @@ int main(int argc, char** argv)
   std::vector<::analysis::Test> expected;
   expected.push_back(::analysis::Test("AssertEq", "OnlySuccess"));
   expected.push_back(::analysis::Test("AssertEq", "ImmediateFailure")
-      .withFailure(24, ::analysis::Level::Assert, ::analysis::Operation::Eq, "2", "1"));
+      .withFailure(22, ::analysis::Level::Assert, ::analysis::Operation::Eq, "2", "1"));
   expected.push_back(::analysis::Test("AssertEq", "AssertStopExecution")
-      .withFailure(29, ::analysis::Level::Assert, ::analysis::Operation::Eq, "2", "1"));
+      .withFailure(27, ::analysis::Level::Assert, ::analysis::Operation::Eq, "2", "1"));
   
   return ::analysis::check(ret, get_stream().str(), expected);
 }

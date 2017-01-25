@@ -1,3 +1,4 @@
+#include <iostream>
 #include <map>
 #include <regex>
 #include <string>
@@ -62,7 +63,7 @@ void push_failure_pattern(std::vector<std::string>& expected, std::pair<int, std
 
   expected.emplace_back("^\\s+" + escape_for_regex(to_failure_name(level, op)) + "$");
   expected.emplace_back("^\\s+.*:" + std::to_string(line) + "$");
-  expected.emplace_back("^\\s+" + escape_for_regex(v1 + to_op_repr(op) + v2) + "$");
+  expected.emplace_back("^\\s+expected: " + escape_for_regex(v2 + to_op_repr(op) + v1) + "$");
 }
 void push_body_pattern(std::vector<std::string>& expected, Test const& test)
 {
@@ -87,6 +88,7 @@ std::vector<std::string> build_patterns(std::vector<Test> const& details)
     push_body_pattern(expected_patterns, test);
     push_footer_pattern(expected_patterns, test);
   }
+  expected_patterns.emplace_back();
   return expected_patterns;
 }
 int compute_retcode(std::vector<Test> const& details)
@@ -117,10 +119,28 @@ int check(int retcode, std::string const& output, std::vector<Test> const& detai
   std::vector<std::string> output_lines { split_string(output, "\n") };
 
   bool failed {};
-  std::size_t num { std::max(output_lines.size(), expected_patterns.size()) };
+  std::size_t num { std::min(output_lines.size(), expected_patterns.size()) };
   for (std::size_t idx {} ; idx != num ; ++idx)
   {
-    //TODO
+    std::cout << ">> " << output_lines[idx] << std::endl;
+    std::smatch m;
+    if (! std::regex_match(output_lines[idx], m, std::regex(expected_patterns[idx])))
+    {
+      failed = true;
+      std::cout << "   EXPECTED: " << expected_patterns[idx] << std::endl;
+    }
+  }
+  for (std::size_t idx {num} ; idx != output_lines.size() ; ++idx)
+  {
+    failed = true;
+    std::cout << ">> " << output_lines[idx] << std::endl;
+    std::cout << "   EXPECTED: <nothing>" << std::endl;
+  }
+  for (std::size_t idx {num} ; idx != expected_patterns.size() ; ++idx)
+  {
+    failed = true;
+    std::cout << ">> <nothing>" << std::endl;
+    std::cout << "   EXPECTED: " << expected_patterns[idx] << std::endl;
   }
   failed |= (retcode != expected_retcode);
 
