@@ -1,6 +1,10 @@
+#include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <tuple>
+#include <type_traits>
+#include <typeinfo>
 #include <vector>
 
 namespace analysis {
@@ -29,6 +33,23 @@ public:
     return *this;
   }
 };
+
+template <class... Ts> using void_t = void;
+template <class T, class = void> struct can_be_printed : std::false_type {};
+template <class T> struct can_be_printed<T, void_t<typename ::std::decay<decltype(::std::cout << ::std::declval<T>())>::type*>> : std::true_type {};
+
+template <class T> std::string to_string(T&& val, typename std::enable_if<can_be_printed<T>::value>::type* = nullptr)
+{
+  std::ostringstream oss;
+  oss << val;
+  return oss.str();
+}
+template <class T> std::string to_string(T&& val, typename std::enable_if<! can_be_printed<T>::value>::type* = nullptr)
+{
+  std::ostringstream oss;
+  oss << "<instance of " << typeid(val).name() << ">";
+  return oss.str();
+}
 
 int check(int /*retcode*/, std::string const& /*output*/, std::vector<::analysis::Test> const& /*details*/);
 
