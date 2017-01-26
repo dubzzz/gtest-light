@@ -4,6 +4,13 @@ _Unit-test your devs on Online compilers_
 
 Light version of GTest framework compatible with Online compilers like ideone, godbolt, codingame
 
+## Disclaimer
+
+Please note the following before using this project:
+- not supposed to replace GoogleTest
+- only a very limited subset implemented
+- code is not supposed to be really readable: short file in order to use easily in online compilers
+
 ## Requirements 
 
 Compiler with C++11 enabled.
