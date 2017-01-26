@@ -16,7 +16,7 @@ template <class T, class = void> struct PrintAll {
   PrintAll(InternalT t) : _t(t) {}
   ::std::ostream& print(::std::ostream& os) const { return (os << "<instance of " << typeid(_t).name() << ">"); }
 };
-template <class T> struct PrintAll<T, void_t<typename ::std::enable_if<! ::std::is_same<void, print_output<T>>::value>::type*>>{
+template <class T> struct PrintAll<T, void_t<print_output<T>>>{
   using InternalT = typename ::std::decay<T>::type const&;
   InternalT _t;
   PrintAll(InternalT t) : _t(t) {}
