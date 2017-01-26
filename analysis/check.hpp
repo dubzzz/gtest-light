@@ -34,10 +34,9 @@ public:
   }
 };
 
-template <class T> using print_output = typename ::std::decay<decltype(::std::cout << ::std::declval<T>())>::type;
 template <class... Ts> using void_t = void;
 template <class T, class = void> struct can_be_printed : std::false_type {};
-template <class T> struct can_be_printed<T, void_t<typename ::std::enable_if<! ::std::is_same<void, print_output<T>>::value>::type*>> : std::true_type {};
+template <class T> struct can_be_printed<T, void_t<decltype(::std::cout << ::std::declval<T>())>> : std::true_type {};
 
 template <class T> std::string to_string(T&& val, typename std::enable_if<can_be_printed<T>::value>::type* = nullptr)
 {
