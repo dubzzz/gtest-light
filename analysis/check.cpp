@@ -64,12 +64,16 @@ void push_failure_pattern(std::vector<std::string>& expected, std::pair<int, std
   int line = failure.first;
   Level const& level = std::get<0>(failure.second);
   Operation const& op = std::get<1>(failure.second);
-  std::string const& v1 = std::get<2>(failure.second);
-  std::string const& v2 = std::get<3>(failure.second);
 
   expected.emplace_back("^\\s+" + escape_for_regex(to_failure_name(level, op)) + "$");
   expected.emplace_back("^\\s+.*:" + std::to_string(line) + "$");
+  #if defined(__clang__) || (defined(__GNUC__) && __GNUC__>=5)
+  std::string const& v1 = std::get<2>(failure.second);
+  std::string const& v2 = std::get<3>(failure.second);
   expected.emplace_back("^\\s+expected: " + escape_for_regex(v2 + to_op_repr(op) + v1) + "$");
+  #else
+  expected.emplace_back("^\\s+expected: <instance of [^>]+>" + escape_for_regex(to_op_repr(op)) + "<instance of [^>]+>$");
+  #endif
 }
 void push_body_pattern(std::vector<std::string>& expected, Test const& test)
 {
