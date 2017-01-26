@@ -15,12 +15,14 @@ template <class T, class = void> struct PrintAll {
   PrintAll(InternalT t) : _t(t) {}
   ::std::ostream& print(::std::ostream& os) const { return (os << "<instance of " << typeid(_t).name() << ">"); }
 };
+#if defined(__clang__) || (defined(__GNUC__) && __GNUC__>=5)
 template <class T> struct PrintAll<T, void_t<decltype(TEST_LOGGER() << ::std::declval<T>())>>{
   using InternalT = typename ::std::decay<T>::type const&;
   InternalT _t;
   PrintAll(InternalT t) : _t(t) {}
   ::std::ostream& print(::std::ostream& os) const { return (os << _t); }
 };
+#endif
 template <class Type> ::std::ostream& operator<<(::std::ostream& os, PrintAll<Type, void> const& t) { return t.print(os); }
 template <class T1, class T2> void log_error(const char* failure_name, const char* filename, unsigned line, const char* comparison, T1&& v1, T2&& v2) {
   TEST_LOGGER() << ::std::boolalpha << "  " << failure_name << "\n    " << filename << ":" << line << "\n    expected: "
