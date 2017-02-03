@@ -34,11 +34,10 @@ public:
   }
 };
 
-template <class... Ts> using void_t = void;
+template <class... Ts> struct make_void { using type = void; };            
+template <class... Ts> using void_t = typename make_void<Ts...>::type;
 template <class T, class = void> struct can_be_printed : std::false_type {};
-#if defined(__clang__) || (defined(__GNUC__) && __GNUC__>=5)
 template <class T> struct can_be_printed<T, void_t<decltype(::std::cout << ::std::declval<T>())>> : std::true_type {};
-#endif
 
 template <class T> std::string to_string(T&& val, typename std::enable_if<can_be_printed<T>::value>::type* = nullptr)
 {
