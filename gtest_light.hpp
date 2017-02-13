@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iomanip>
 #include <iterator>
 #include <type_traits>
@@ -60,9 +61,11 @@ protected:
 template <class Runner> bool launch_runner()
 {
   TEST_LOGGER() << ::std::left << "[ " << ::std::setw(30) << Runner::name << " ]" << ::std::endl;
+  auto t0 = std::chrono::high_resolution_clock::now();
   bool out { Runner().run() };
+  auto t1 = std::chrono::high_resolution_clock::now();
   const char* status = out ? "FAILED" : "OK";
-  TEST_LOGGER() << ::std::right << "[ " << ::std::setw(30) << status << " ]" << ::std::endl;
+  TEST_LOGGER() << ::std::right << "[ " << ::std::setw(30) << status << " ] - " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << "ms" << ::std::endl;
   return out;
 }
 constexpr unsigned g_max_num_tests = 200;
