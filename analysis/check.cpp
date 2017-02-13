@@ -81,8 +81,8 @@ void push_body_pattern(std::vector<std::string>& expected, Test const& test)
 void push_footer_pattern(std::vector<std::string>& expected, Test const& test)
 {
   expected.emplace_back(test.failures().empty()
-      ? "^\\[ \\s+OK \\]$"
-      : "^\\[ \\s+FAILED \\]$");
+      ? "^\\[ \\s+OK \\] - \\d+ms$"
+      : "^\\[ \\s+FAILED \\] - \\d+ms$");
 }
 
 std::vector<std::string> build_patterns(std::vector<Test> const& details)
